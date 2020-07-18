@@ -92,29 +92,40 @@ class OCR(object):
             s="+".join(l)
             s="-l "+s
         im = cv2.imread(root.filename)
+        gray= cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         if choice==1:
-            config = (s+" --oem 1 --psm 3")
-            text = pytesseract.image_to_string(im, config=config)
-        else:
-            gray= cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-            coords = np.column_stack(np.where(thresh > 0))
-            angle = cv2.minAreaRect(coords)[-1]
-            if angle < -45:
-                angle = -(90 + angle)
-            else:
+             thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+             coords = np.column_stack(np.where(thresh > 0))
+             angle = cv2.minAreaRect(coords)[-1]
+             if angle < -45:
+                 angle = -(90 + angle)
+             else:
+                 angle = -angle
+                 (h, w) = gray.shape[:2]
+                 center = (w // 2, h // 2)
+                 M = cv2.getRotationMatrix2D(center, angle, 1.0)
+                 gray = cv2.warpAffine(gray, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)    
+                 (thresh, im) = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+
+        else: 
+             thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+             coords = np.column_stack(np.where(thresh > 0))
+             angle = cv2.minAreaRect(coords)[-1]
+             if angle < -45:
+                 angle = -(90 + angle)
+             else:
                 angle = -angle
-            (h, w) = gray.shape[:2]
-            center = (w // 2, h // 2)
-            M = cv2.getRotationMatrix2D(center, angle, 1.0)
-            gray = cv2.warpAffine(gray, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
-            (thresh, im) = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
-            config = (s+" --oem 1 --psm 3")
-            text = pytesseract.image_to_string(im, config=config)
+             (h, w) = gray.shape[:2]
+             center = (w // 2, h // 2)
+             M = cv2.getRotationMatrix2D(center, angle, 1.0)
+             gray = cv2.warpAffine(gray, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+             (thresh, im) = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        config = (s+" --oem 1 --psm 3")
+        text = pytesseract.image_to_string(im, config=config)
         text = text.split('\n')
-        text.remove("")
+        if "" in text:
+             text.remove("")
         s="\n".join(text)
-        
         textbox1.insert("end",s)
         textbox1.configure(state='disabled')
 root=tk.Tk()
