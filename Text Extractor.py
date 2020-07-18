@@ -2,7 +2,7 @@ import tkinter as tk
 import cv2
 import numpy as np
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def open_img():
         root.filename =  tk.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("png files","*.png")))
@@ -93,24 +93,24 @@ class OCR(object):
             s="-l "+s
         im = cv2.imread(root.filename)
         if choice==1:
-                config = (s+" --oem 1 --psm 3")
-                text = pytesseract.image_to_string(im, config=config)
+            config = (s+" --oem 1 --psm 3")
+            text = pytesseract.image_to_string(im, config=config)
         else:
-                gray= cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-                thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-                coords = np.column_stack(np.where(thresh > 0))
-                angle = cv2.minAreaRect(coords)[-1]
-                if angle < -45:
-                        angle = -(90 + angle)
-                else:
-                        angle = -angle
-                (h, w) = gray.shape[:2]
-                center = (w // 2, h // 2)
-                M = cv2.getRotationMatrix2D(center, angle, 1.0)
-                gray = cv2.warpAffine(gray, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
-                (thresh, im) = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
-                config = (s+" --oem 1 --psm 3")
-                text = pytesseract.image_to_string(im, config=config)
+            gray= cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+            thresh = cv2.threshold(gray, 0, 255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+            coords = np.column_stack(np.where(thresh > 0))
+            angle = cv2.minAreaRect(coords)[-1]
+            if angle < -45:
+                angle = -(90 + angle)
+            else:
+                angle = -angle
+            (h, w) = gray.shape[:2]
+            center = (w // 2, h // 2)
+            M = cv2.getRotationMatrix2D(center, angle, 1.0)
+            gray = cv2.warpAffine(gray, M, (w, h),flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+            (thresh, im) = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+            config = (s+" --oem 1 --psm 3")
+            text = pytesseract.image_to_string(im, config=config)
         text = text.split('\n')
         text.remove("")
         s="\n".join(text)
